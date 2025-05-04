@@ -1,0 +1,15 @@
+D:/learning/lund/neurual_network/sv_study.sv {1 {vlog -work work -vopt -sv -stats=none {D:\learning\lund\neurual_network\sv_study.sv}
+Model Technology ModelSim SE-64 vlog 10.4 Compiler 2014.12 Dec  3 2014
+-- Compiling module counter
+
+Top level modules:
+	counter
+
+} {} {}} D:/learning/lund/neurual_network/sv_study_tb.sv {1 {vlog -work work -vopt -sv -stats=none {D:\learning\lund\neurual_network\sv_study_tb.sv}
+Model Technology ModelSim SE-64 vlog 10.4 Compiler 2014.12 Dec  3 2014
+-- Compiling module sv_study_tb
+
+Top level modules:
+	sv_study_tb
+
+} {} {}}

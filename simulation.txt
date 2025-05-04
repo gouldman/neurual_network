@@ -1,0 +1,27 @@
+vlib work
+vcom SRAM_SP_WRAPPER.vhd
+vlog SPHD110420.v  delay_module.sv
+vlog weight_ram_wrapper.sv
+vlog FPAU.sv FPU.sv five_adder_tree.sv fiv_fiv_adder_tree.sv PE.sv conv_control.sv conv_control_tb.sv
+
+vsim -novopt work.conv_control_tb
+
+add wave  -radix unsigned  *
+add wave -radix unsigned dut/*
+#add wave -radix unsigned dut/pe/*
+
+#add wave -radix unsigned dut/pe/pic
+#add wave -radix unsigned dut/pe/weight
+
+
+# Add adder_tree signals
+#add wave  -radix unsigned dut/pe/adder_tree/*
+#add wave  -radix unsigned dut/pe/fm_results
+# Add delay_module signals
+#add wave  -radix unsigned dut/pe/delay_3/*
+# 6. 在控制台显示仿真中的变量值
+write timing
+# 7. 显示仿真中的进程和任务
+
+run -all
+wave zoom full
