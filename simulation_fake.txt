@@ -1,0 +1,24 @@
+vlib work
+vlog fake_conv_control.sv fake_conv_control_tb.sv
+
+vsim -novopt work.fake_conv_control_tb
+
+add wave  -radix unsigned  *
+add wave -radix unsigned dut/*
+#add wave -radix unsigned dut/pe/*
+
+#add wave -radix unsigned dut/pe/pic
+#add wave -radix unsigned dut/pe/weight
+
+
+# Add adder_tree signals
+#add wave  -radix unsigned dut/pe/adder_tree/*
+#add wave  -radix unsigned dut/pe/fm_results
+# Add delay_module signals
+#add wave  -radix unsigned dut/pe/delay_3/*
+# 6. 在控制台显示仿真中的变量值
+write timing
+# 7. 显示仿真中的进程和任务
+
+run -all
+wave zoom full

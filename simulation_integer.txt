@@ -1,0 +1,30 @@
+vlib work
+vcom SRAM_SP_WRAPPER.vhd
+vlog SPHD110420.v  delay_module.sv
+vlog weight_ram_wrapper.sv
+vlog twenty_five_adder_tree_integer.sv PE_integer.sv conv_control_integer.sv conv_control_integer_tb.sv
+
+vsim -novopt work.conv_control_integer_tb
+
+#add wave  -radix unsigned  *
+add wave -radix unsigned dut/*
+add wave -radix unsigned dut/weight_ram/*
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/weight_counter
+
+
+add wave -radix unsigned dut/pe/*
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pe/pic
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pe/result
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pe/weight
+
+
+# 6. 在控制台显示仿真中的变量值
+write timing
+# 7. 显示仿真中的进程和任务
+
+run -all
+wave zoom full

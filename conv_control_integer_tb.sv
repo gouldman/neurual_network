@@ -1,30 +1,30 @@
 `timescale 1ns/1ps
 
-module conv_control_tb;
+module conv_control_integer_tb;
 
   // ----------------------------
   // Parameters
   // ----------------------------
-  parameter WIDTH = 8;
+  parameter pic_bits = 2;
+  parameter weight_bits = 3;
   parameter kernel_size = 5;
   parameter pic_size = 28;
-  parameter SIGN = 1;
-  parameter FP_POSITIONS = 4;
+  parameter kernel_number = 1;
   parameter channel = 3;
-  parameter kernel_number = 4;
+  parameter conv_result_bits = $clog2(kernel_size*kernel_size*kernel_number*channel) + weight_bits + 1;
 
   // ----------------------------
   // Interface signals
   // ----------------------------
   logic clk;
   logic rst_n;
-  logic [WIDTH-1:0] pic;
+  logic [pic_bits-1:0] pic;
   logic pic_valid;
   logic conv_start;
   logic need_pic;
   logic conv_finish;
   logic conv_result_valid;
-  logic [WIDTH-1:0] conv_result;
+  logic [conv_result_bits-1:0] conv_result;
   logic [$clog2(pic_size*pic_size)-1:0] conv_result_addr;
 
   // ----------------------------
@@ -38,14 +38,14 @@ module conv_control_tb;
   // ----------------------------
   // DUT instantiation
   // ----------------------------
-  conv_control #(
-    .WIDTH(WIDTH),
+  conv_control_integer #(
+    .pic_bits(pic_bits),
+    .weight_bits(weight_bits),
     .kernel_size(kernel_size),
     .pic_size(pic_size),
-    .SIGN(SIGN),
-    .FP_POSITIONS(FP_POSITIONS),
+    .kernel_number(kernel_number),
     .channel(channel),
-    .kernel_number(kernel_number)
+    .conv_result_bits(conv_result_bits)
   ) dut (
     .clk(clk),
     .rst_n(rst_n),
@@ -76,9 +76,6 @@ module conv_control_tb;
   endtask
 
   // ----------------------------
-  // Stimulus Task
-  // ----------------------------
-  // ----------------------------
   // Test Sequence
   // ----------------------------
   initial begin
@@ -88,11 +85,10 @@ module conv_control_tb;
     pic_valid = 1;
     pic = 1;
     #100000;
-        #100000;
-            #100000;
-        #100000;
+    #100000;
+    #100000;
+    #100000;
     $finish;
   end
 
 endmodule
-

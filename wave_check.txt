@@ -1,0 +1,23 @@
+
+
+
+
+
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pic_buffer
+
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/state
+
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/shift_window
+
+#add wave -radix unsigned dut/pe/pic
+#add wave -radix unsigned dut/pe/weight
+
+
+# Add adder_tree signals
+#add wave  -radix unsigned dut/pe/adder_tree/*
+#add wave  -radix unsigned dut/pe/fm_results
+# Add delay_module signals
+#add wave  -radix unsigned dut/pe/delay_3/*

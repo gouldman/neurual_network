@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module weight_ram_wrapper #(
-    parameter DATA_WIDTH = 32,  // Data bit width
+    parameter DATA_WIDTH = 8,  // Data bit width
     parameter DATA_DEPTH = 256  // Number of data entries
 ) (
     input  logic                  clk,
@@ -12,18 +12,15 @@ module weight_ram_wrapper #(
     output logic                  read_data_valid // Read data valid signal
 );
 
-logic valid_delay, valid_delay_n;
 always_ff @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
         read_data <= '0;
         read_data_valid <= 1'b0;
     end else begin
-        valid_delay <= valid_delay_n;
-        read_data_valid <= valid_delay;
-        read_data <= '0;
+        read_data_valid <= address_valid;
+        read_data <= 1;
     end
 end
-assign valid_delay_n = address_valid;
 
     // // Internal signals for SRAM wrapper
     // logic        sram_cs_n;

@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module conv_control_tb;
+module fake_conv_control_tb;
 
   // ----------------------------
   // Parameters
@@ -38,7 +38,7 @@ module conv_control_tb;
   // ----------------------------
   // DUT instantiation
   // ----------------------------
-  conv_control #(
+  fake_conv_control #(
     .WIDTH(WIDTH),
     .kernel_size(kernel_size),
     .pic_size(pic_size),
@@ -84,13 +84,14 @@ module conv_control_tb;
   initial begin
     reset_dut(); 
     conv_start = 1;
+    #10;
+    conv_start = 0;
     #100;
     pic_valid = 1;
-    pic = 1;
     #100000;
         #100000;
             #100000;
-        #100000;
+                    #100000;
     $finish;
   end
 
