@@ -19,9 +19,12 @@ module conv_control_integer#(
     output logic conv_finish,
     output logic conv_result_valid, // Output valid signal
     output logic [conv_result_bits - 1:0] conv_result, // Result of the multiplication
-    output logic [$clog2(pic_size*pic_size)-1:0] conv_result_addr // Counter for picture size
+    output logic [$clog2(pic_size*pic_size)-1:0] conv_result_addr, // Counter for picture size
+    output logic read_sram_enable,
+    input logic [pic_bits - 1:0] sram_data_valid,
+    input logic [pic_bits - 1:0] sram_data
 );
-typedef enum logic [1:0] {IDLE, RD, CAL, WD} state_t; // State machine for control
+typedef enum logic [1:0] {IDLE, RD, CAL} state_t; // State machine for control
 localparam int PADDING = 4;
 
 logic [pic_bits - 1:0] pic_buffer[kernel_size - 1:0] [pic_size - 1 + PADDING:0]; // 2D array for the picture
@@ -34,7 +37,17 @@ logic need_pic_reg, need_pic_reg_n; // Register for need picture signal
 logic need_weight_reg, need_weight_reg_n; // Register for need weight signal
 logic [1 : 0] update_first_r_counter, update_first_r_counter_n; // Update first row counter signal
 logic [$clog2(pic_size) - 1:0] update_c_counter, update_c_counter_n; // Update first column counter signal
-logic [conv_result_bits - 1:0] result_buffer [pic_size*pic_size - 1:0];
+// logic [conv_result_bits - 1:0] result_buffer [pic_size*pic_size - 1:0];
+
+logic [conv_result_bits - 1:0] previous_result_buffer [pic_size - 1:0]; // Buffer for the result
+logic [$clog2(pic_size * pic_size * kernel_size) - 1:0] previous_result_address_counter, previous_result_address_counter_n;
+logic [$clog2(pic_size) - 1:0] previous_result_counter, previous_result_counter_n; // Counter for picture size
+logic update_previous_result, update_previous_result_n; // Update previous result signal
+logic read_sram_enable_n;
+
+logic [$clog2(pic_size) - 1:0] result_col_counter, result_col_counter_n; // Counter for picture size
+logic [$clog2(pic_size * pic_size) - 1:0] result_addr_counter,result_addr_counter_n; // Counter for picture size
+
 logic [$clog2(kernel_number)-1:0] kernel_counter, kernel_counter_next; // Counter for filter number
 logic [$clog2(kernel_size*kernel_size*kernel_number*channel)-1:0] weight_addr, weight_addr_n; // Address for weight RAM
 logic [$clog2(kernel_size*kernel_size)-1:0] weight_counter,weight_counter_n; // Address for kernel RAM
@@ -42,15 +55,12 @@ logic weight_addr_valid, weight_addr_valid_n; // Address valid signal for weight
 logic [weight_bits - 1:0] weight_buffer [kernel_size * kernel_size - 1:0]; // Buffer for weight data
 logic [weight_bits - 1:0] weight_data; // Data from weight RAM
 logic weight_data_valid; // Data valid signal from weight RAM
-logic PE_enable;
+logic PE_enable,PE_enable_n; // Enable signal for the PE module
 logic [pic_bits - 1:0] shift_window [kernel_size * kernel_size - 1:0];
 logic [conv_result_bits - 1:0] middle_conv_result, middle_conv_result_temp; // Result of the convolution
 logic middle_conv_result_valid; // Valid signal for the convolution result
 state_t state, state_n; // State machine for control
 
-logic [$clog2(pic_size * pic_size)-1:0] middle_result_counter, middle_result_counter_next; // Counter for picture size
-logic [$clog2(pic_size * pic_size)-1:0] WD_counter, WD_counter_next; // Counter for picture size
-logic [$clog2(kernel_number) - 1:0] WD_kernel_counter, WD_kernel_counter_next; // Counter for filter number
 logic conv_finish_reg, conv_finish_reg_n; // Register for convolution finish signal
 
 assign need_pic = need_pic_reg; // Assign the need picture signal to the output
@@ -72,10 +82,16 @@ always_ff @(posedge clk or negedge rst_n) begin
         weight_addr <= 0; // Reset the weight address
         weight_addr_valid <= 0; // Reset the weight address valid signal
         weight_counter <= 0;
-        middle_result_counter <= 0;
-        WD_counter <= 0;
+        previous_result_address_counter <= 0;
+        previous_result_counter <= 0; // Reset the result counter
+        update_previous_result <= 0; // Reset the update previous result signal
+        read_sram_enable <= 0; // Reset the read SRAM enable signal
+
+        result_col_counter <= 0; // Reset the result column counter
+        result_addr_counter <= 0; // Reset the result address counter
+
         conv_finish_reg <= 0; // Reset the convolution finish signal
-        WD_kernel_counter <= 0; // Reset the filter counter
+        PE_enable <= 0; // Reset the PE enable signal
     end else begin 
         
         update_pic_buffer <= update_pic_buffer_n; // Update the picture buffer signal
@@ -92,48 +108,24 @@ always_ff @(posedge clk or negedge rst_n) begin
         kernel_counter <= kernel_counter_next; // Update the filter counter
         weight_addr <= weight_addr_n; // Update the weight address
         weight_addr_valid <= weight_addr_valid_n; // Update the weight address valid signal
-        middle_result_counter <= middle_result_counter_next; // Update the result counte
-        WD_counter <= WD_counter_next; // Update the result counter
+        previous_result_address_counter <= previous_result_address_counter_n; // Update the result address counter
+        previous_result_counter <= previous_result_counter_n; // Update the result counter
+        update_previous_result <= update_previous_result_n; // Update the update previous result signal
+        read_sram_enable <= read_sram_enable_n; // Update the read SRAM enable signal
+
+        result_col_counter <= result_col_counter_n; // Update the result column counter
+        result_addr_counter <= result_addr_counter_n; // Update the result address counter
+        PE_enable <= PE_enable_n; // Update the PE enable signal
+
         conv_finish_reg <= conv_finish_reg_n; // Update the convolution finish signal
-        WD_kernel_counter <= WD_kernel_counter_next; // Update the filter counter
-    end
-end
-
-always_ff @(posedge clk or negedge rst_n) begin
-
-    if(state == IDLE && conv_start) begin
-        for (integer i = 0; i < pic_size * pic_size; i = i + 1) begin
-            result_buffer[i]<= 0;
-        end
-    end        
-    // if(state == CAL && col_counter == pic_size - 1 && row_counter == pic_size - 1 && channel_counter == channel - 1) begin
-    //     for(integer i = 0; i< kernel_size * kernel_size; i = i + 1) begin
-    //         result_buffer[i] <= 0;
-    //     end
-    // end
-    if(middle_conv_result_valid) begin
-        result_buffer[middle_result_counter] <= middle_conv_result; // Store the result in the buffer
     end
 end
 
 always_comb begin
-    middle_result_counter_next = middle_result_counter; // Default to current result counter
-
-    if(middle_conv_result_valid) begin
-        if(middle_result_counter == pic_size * pic_size - 1) begin
-            middle_result_counter_next = 0; // Reset the result counter
-        end else begin
-            middle_result_counter_next = middle_result_counter + 1; // Increment the result counter
-        end
-    end
-end
-
-always_comb begin
+    PE_enable_n = 0; // Default to current PE enable signal
     conv_result_valid = 0; // Default to zero
     conv_result = 0; // Default to zero
     conv_result_addr = 0;
-    PE_enable = 0;
-    WD_counter_next = WD_counter; // Default to current result counter
     state_n = state; // Default to current state
     need_pic_reg_n = need_pic_reg; // Default to current need picture register value
     update_pic_buffer_n = update_pic_buffer; // Default to current update picture buffer signal
@@ -145,11 +137,19 @@ always_comb begin
     channel_counter_next = channel_counter; // Default to current channel counter
     kernel_counter_next = kernel_counter; // Default to current filter counter
     weight_addr_n = weight_addr; // Default to current weight address
-    weight_addr_valid_n = weight_addr_valid; // Default to current weight address valid signal
+    weight_addr_valid_n = 0; // Default to current weight address valid signal
     need_weight_reg_n = need_weight_reg; // Default to current need weight register signal
     weight_counter_n = weight_counter;
+    previous_result_address_counter_n = previous_result_address_counter; // Default to current result address counter
+    previous_result_counter_n = previous_result_counter; // Default to current result counter
+    update_previous_result_n = update_previous_result; // Default to zero
+    read_sram_enable_n = 0; // Default to zero
+    
+
+    result_col_counter_n = result_col_counter; // Default to current result column counter
+    result_addr_counter_n = result_addr_counter; // Default to current result address counter
+    
     conv_finish_reg_n = 0; // Default to current convolution finish signal
-    WD_kernel_counter_next = WD_kernel_counter; // Default to current filter counter
     for(integer i = 0; i< kernel_size * kernel_size; i = i + 1) begin
         shift_window[i] = 0; // Initialize the weight buffer to zero
     end
@@ -159,19 +159,56 @@ always_comb begin
                 for(integer i = 0; i< kernel_size * kernel_size; i = i + 1) begin
                     weight_buffer[i] = 0; // Initialize the weight buffer to zero
                 end
+                for(integer i = 0; i < pic_size; i = i + 1) begin
+                    previous_result_buffer[i] = 0; // Initialize the result buffer to zero
+                end
                 state_n = RD;
                 init_pic_buffer_n = 1; // Set the initialize picture buffer signal
                 need_weight_reg_n = 1;
                 weight_addr_valid_n = 1;
+                update_previous_result_n = 1;
+                read_sram_enable_n = 1;
             end
         end
         RD: begin
+
+            if(!need_weight_reg && ! init_pic_buffer && ! update_pic_buffer && ! update_previous_result) begin
+                state_n = CAL; // Move to CAL state  
+                PE_enable_n = 1; // Set the PE enable signal  
+            end
+
+            if(update_previous_result) begin
+                conv_result_addr = previous_result_address_counter; // Pass the result address to the output
+                if(previous_result_counter < 28) begin
+                    previous_result_address_counter_n = previous_result_address_counter + 1; // Increment the result address counter
+                end
+                if(previous_result_counter >= 27) begin
+                    read_sram_enable_n = 0; // Enable reading from SRAM
+                end else begin
+                    read_sram_enable_n = 1; // Set the read SRAM enable signal
+                end
+                if(previous_result_counter == 28) begin
+                    if(row_counter == pic_size - 1) begin
+                        previous_result_address_counter_n = 0; // Reset the result address counter
+                    end
+                    update_previous_result_n = 0; // Reset the update previous result signal
+                    previous_result_counter_n = 0; // Reset the result counter
+                end else begin
+                    previous_result_counter_n = previous_result_counter + 1; // Increment the result address counter
+                end
+                if(sram_data_valid & (previous_result_counter ! = 0)) begin
+                    previous_result_buffer[previous_result_counter - 1] = sram_data; // Store the result in the buffer
+                end
+            end
+
             if(need_weight_reg) begin
                 if(weight_counter < 25) begin
                     weight_addr_n = weight_addr + 1; // Increment the weight address
                 end
-                if(weight_counter == 24) begin
+                if(weight_counter >= 24) begin
                     weight_addr_valid_n = 0;
+                end else begin
+                    weight_addr_valid_n = 1; // Set the weight address valid signal
                 end
                 if(weight_counter == 25) begin
                     if(channel_counter == channel - 1) begin
@@ -188,14 +225,13 @@ always_comb begin
             end
             if(init_pic_buffer) begin
                 update_pic_buffer_n = 1; // Set the update picture buffer signal
+                init_pic_buffer_n = 0; // Initialize the picture buffer signal
                 if(row_counter < 26) begin
                     need_pic_reg_n = 1;
-                end else begin
+                end else begin//???????
                     update_pic_buffer_n = 0; // Reset the update picture buffer signal
-                    need_pic_reg_n = 0; // Reset the need picture register signal
-                    state_n = CAL; // Move to CAL state                                   
+                    need_pic_reg_n = 0; // Reset the need picture register signal                                  
                 end
-                init_pic_buffer_n = 0; // Initialize the picture buffer signal
                 if(row_counter == 0) begin
                     for(integer i = 0; i < kernel_size ; i = i + 1) begin
                         for(integer j = 0; j < pic_size + PADDING; j = j + 1) begin
@@ -222,7 +258,6 @@ always_comb begin
                             if(update_first_r_counter == kernel_size - PADDING/2 -1) begin
                                 update_first_r_counter_n = 0; // Reset the row counter
                                 update_pic_buffer_n = 0; // Reset the update picture buffer signal
-                                state_n = CAL; // Move to CAL state
                             end else
                                 update_first_r_counter_n = update_first_r_counter + 1; // Increment the row counter
                         end else begin
@@ -233,7 +268,6 @@ always_comb begin
                         if(update_c_counter == pic_size - 1) begin
                             update_c_counter_n = 0; // Reset the column counter
                             update_pic_buffer_n = 0; // Reset the update picture buffer signal
-                            state_n = CAL; // Move to CAL state
                         end else begin
                             update_c_counter_n = update_c_counter + 1;
                         end
@@ -242,64 +276,85 @@ always_comb begin
             end
         end
         CAL:begin
-            PE_enable = 1;
+            PE_enable_n = 1; // Set the PE enable signal
             for(integer i = 0; i < kernel_size; i = i + 1) begin
                 for(integer j = 0; j < kernel_size; j = j + 1) begin
                     shift_window[i * kernel_size + j] = pic_buffer[i][j + col_counter]; // Pass the first row of the picture buffer
                 end
             end
+            if(middle_conv_result_valid) begin
+                conv_result_valid = 1;
+                conv_result = middle_conv_result_temp + previous_result_buffer[result_col_counter]; // Add the result to the buffer
+                if(result_col_counter < pic_size - 1) begin
+                    result_col_counter_n = result_col_counter + 1; // Increment the result column counter
+                end else begin
+                    result_col_counter_n = 0; // Reset the result column counter
+                end
+                if(result_addr_counter < pic_size * pic_size - 1) begin
+                    result_addr_counter_n = result_addr_counter + 1; // Increment the result address counter
+                end else begin
+                    result_addr_counter_n = 0; // Reset the result address counter
+                end
+                conv_result_addr = result_addr_counter; // Pass the result address to the output
+            end
             if(col_counter == pic_size - 1) begin
-                state_n = RD;
-                init_pic_buffer_n = 1; // Set the update picture buffer signal
-                col_counter_next = 0; // Reset the column counter
-                if(row_counter == pic_size - 1) begin
-                    row_counter_next = 0;
-                    need_weight_reg_n = 1;
-                    init_pic_buffer_n = 1;
-                    weight_addr_valid_n = 1;
-                    if(channel_counter == channel -1) begin
-                        need_weight_reg_n = 0;
-                        weight_addr_valid_n = 0;
-                        state_n = WD;
-                        init_pic_buffer_n = 0;
-                        channel_counter_next = 0; // Reset the channel counter
-                        PE_enable = 0; // Disable the PE module
-                        if(kernel_counter == kernel_number - 1) begin
-                            kernel_counter_next = 0; // Reset the filter counter
+                PE_enable_n = 0;
+                if(!middle_conv_result_valid) begin
+                    state_n = RD;
+                    init_pic_buffer_n = 1; // Set the update picture buffer signal
+                    update_previous_result_n = 1; // Set the update previous result signal
+                    read_sram_enable_n = 1; // Set the read SRAM enable signal
+                    col_counter_next = 0; // Reset the column counter
+                    if(row_counter == pic_size - 1) begin
+                        row_counter_next = 0;
+                    //     need_weight_reg_n = 1;
+                    //     init_pic_buffer_n = 1;
+                    //     weight_addr_valid_n = 1;
+                        if(channel_counter == channel -1) begin
+                    //         need_weight_reg_n = 0;
+                    //         weight_addr_valid_n = 0;
+                    //         state_n = WD;
+                    //         init_pic_buffer_n = 0;
+                            channel_counter_next = 0; // Reset the channel counter
+                            conv_finish_reg_n = 1; // Set the convolution finish signal
+                    //         PE_enable = 0; // Disable the PE module
+                    //         if(kernel_counter == kernel_number - 1) begin
+                    //             kernel_counter_next = 0; // Reset the filter counter
+                    //         end else begin
+                    //             kernel_counter_next = kernel_counter + 1;
+                    //         end
                         end else begin
-                            kernel_counter_next = kernel_counter + 1;
+                            channel_counter_next = channel_counter + 1; // Increment the channel counter
                         end
                     end else begin
-                        channel_counter_next = channel_counter + 1; // Increment the channel counter
+                        row_counter_next = row_counter + 1; // Increment the row counter
                     end
-                end else begin
-                    row_counter_next = row_counter + 1; // Increment the row counter
                 end
             end else begin
                 col_counter_next = col_counter + 1;
             end
         end
-        WD: begin
-            conv_result = result_buffer[WD_counter]; // Pass the result to the output
-            conv_result_valid = 1; // Set the output valid signal
-            conv_result_addr = WD_counter; // Pass the result address to the output
-            if(WD_counter == pic_size * pic_size - 1) begin
-                if(WD_kernel_counter == kernel_number - 1) begin
-                    WD_kernel_counter_next = 0; // Reset the filter counter
-                    state_n = IDLE; // Move to IDLE state
-                    conv_finish_reg_n = 1; // Set the convolution finish signal
-                end else begin
-                    WD_kernel_counter_next = WD_kernel_counter + 1; // Increment the filter counter
-                    need_weight_reg_n = 1;
-                    init_pic_buffer_n = 1; // Set the need picture register signal
-                    weight_addr_valid_n = 1;
-                    state_n = RD; // Move to RD state
-                end
-                WD_counter_next = 0; // Reset the result counter
-            end else begin
-                WD_counter_next = WD_counter + 1; // Increment the result counter
-            end
-        end
+        // WD: begin
+        //     conv_result = result_buffer[WD_counter]; // Pass the result to the output
+        //     conv_result_valid = 1; // Set the output valid signal
+        //     conv_result_addr = WD_counter; // Pass the result address to the output
+        //     if(WD_counter == pic_size * pic_size - 1) begin
+        //         if(WD_kernel_counter == kernel_number - 1) begin
+        //             WD_kernel_counter_next = 0; // Reset the filter counter
+        //             state_n = IDLE; // Move to IDLE state
+        //             conv_finish_reg_n = 1; // Set the convolution finish signal
+        //         end else begin
+        //             WD_kernel_counter_next = WD_kernel_counter + 1; // Increment the filter counter
+        //             need_weight_reg_n = 1;
+        //             init_pic_buffer_n = 1; // Set the need picture register signal
+        //             weight_addr_valid_n = 1;
+        //             state_n = RD; // Move to RD state
+        //         end
+        //         WD_counter_next = 0; // Reset the result counter
+        //     end else begin
+        //         WD_counter_next = WD_counter + 1; // Increment the result counter
+        //     end
+        // end
         default: begin
             state_n = IDLE; // Default to IDLE state
         end
@@ -359,5 +414,4 @@ PE_integer #(
 //     .result(middle_conv_result) // Connect to the output result
 // );
 
-assign middle_conv_result = middle_conv_result_temp + result_buffer[middle_result_counter]; // Add the result to the buffer
 endmodule
