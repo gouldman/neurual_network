@@ -166,9 +166,7 @@ always_comb begin
                 state_n = RD;
                 init_pic_buffer_n = 1; // Set the initialize picture buffer signal
                 need_weight_reg_n = 1;
-                weight_addr_valid_n = 1;
                 update_previous_result_n = 1;
-                read_sram_enable_n = 1;
             end
         end
         RD: begin
@@ -183,7 +181,7 @@ always_comb begin
                     update_previous_result_n = 0; // Reset the update previous result signal
                 end else begin
                 conv_result_addr = previous_result_address_counter; // Pass the result address to the output
-                if(previous_result_counter < 28) begin
+                if(previous_result_counter < 28 && previous_result_counter != 0 || read_sram_enable) begin
                     previous_result_address_counter_n = previous_result_address_counter + 1; // Increment the result address counter
                 end
                 if(previous_result_counter >= 27) begin
@@ -197,8 +195,10 @@ always_comb begin
                     end
                     update_previous_result_n = 0; // Reset the update previous result signal
                     previous_result_counter_n = 0; // Reset the result counter
-                end else begin
-                    previous_result_counter_n = previous_result_counter + 1; // Increment the result address counter
+                end else begin 
+                    if(previous_result_counter != 0 || read_sram_enable) begin
+                        previous_result_counter_n = previous_result_counter + 1; // Increment the result address counter
+                    end
                 end
                 if(sram_data_valid & (previous_result_counter != 0)) begin
                     previous_result_buffer[previous_result_counter - 1] = sram_data; // Store the result in the buffer
@@ -207,7 +207,7 @@ always_comb begin
             end
 
             if(need_weight_reg) begin
-                if(weight_counter < 25) begin
+                if(weight_counter < 25 && (weight_counter != 0 || weight_addr_valid)) begin
                     weight_addr_n = weight_addr + 1; // Increment the weight address
                 end
                 if(weight_counter >= 24) begin
@@ -222,7 +222,10 @@ always_comb begin
                     need_weight_reg_n = 0;
                     weight_counter_n = 0; // Reset the weight counter
                 end else begin
-                    weight_counter_n = weight_counter + 1; // Increment the weight address
+                    if(weight_counter != 0 || weight_addr_valid) begin
+                        weight_counter_n = weight_counter + 1; // Increment the weight address
+                    end
+
                 end
                 if(weight_data_valid) begin
                     weight_buffer[weight_counter - 1] = weight_data;
@@ -312,7 +315,11 @@ always_comb begin
                     state_n = RD;
                     init_pic_buffer_n = 1; // Set the update picture buffer signal
                     update_previous_result_n = 1; // Set the update previous result signal
-                    read_sram_enable_n = 1; // Set the read SRAM enable signal
+                    // if(channel_counter == 0) begin
+                    //     read_sram_enable_n = 0; // Set the read SRAM enable signal
+                    // end else begin
+                    //     read_sram_enable_n = 1; // Set the read SRAM enable signal
+                    // end
                     col_counter_next = 0; // Reset the column counter
                     if(row_counter == pic_size - 1) begin
                         row_counter_next = 0;
