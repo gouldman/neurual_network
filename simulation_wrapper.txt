@@ -1,0 +1,19 @@
+vlib work
+
+vlog SPHDL100909.sv  delay_module.sv
+vlog weight_ram_wrapper.sv
+vlog twenty_five_adder_tree_integer.sv PE_integer.sv conv_control_integer.sv 
+vlog ofm_sram.sv mmu_wrapper.sv tb_mmu_wrapper.sv
+vsim -novopt work.tb_mmu_wrapper
+
+add wave  -radix unsigned  *
+add wave -radix unsigned dut/*
+
+
+
+# 6. 在控制台显示仿真中的变量值
+write timing
+# 7. 显示仿真中的进程和任务
+
+run -all
+wave zoom full

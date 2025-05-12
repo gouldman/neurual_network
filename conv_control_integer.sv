@@ -1,11 +1,12 @@
 module conv_control_integer#(
-    parameter pic_bits = 2,
-    parameter weight_bits = 3,
+    parameter pic_bits = 8,
+    parameter weight_bits = 8,
     parameter kernel_size =5,
     parameter pic_size = 28,
     parameter kernel_number = 1,
     parameter channel = 1, // Number of channels
-    parameter conv_result_bits = $clog2(kernel_size*kernel_size*kernel_number*channel) + weight_bits + 1
+    parameter conv_result_bits = 8
+    // parameter conv_result_bits = $clog2(kernel_size*kernel_size*kernel_number*channel) + weight_bits + 1
     // parameter SIGN = 1, // 1 for signed, 0 for unsigned
     // parameter FP_POSITIONS = 4, // Number of bits for the fractional part
 
@@ -178,6 +179,9 @@ always_comb begin
             end
 
             if(update_previous_result) begin
+                if(channel_counter == 0) begin
+                    update_previous_result_n = 0; // Reset the update previous result signal
+                end else begin
                 conv_result_addr = previous_result_address_counter; // Pass the result address to the output
                 if(previous_result_counter < 28) begin
                     previous_result_address_counter_n = previous_result_address_counter + 1; // Increment the result address counter
@@ -196,8 +200,9 @@ always_comb begin
                 end else begin
                     previous_result_counter_n = previous_result_counter + 1; // Increment the result address counter
                 end
-                if(sram_data_valid & (previous_result_counter ! = 0)) begin
+                if(sram_data_valid & (previous_result_counter != 0)) begin
                     previous_result_buffer[previous_result_counter - 1] = sram_data; // Store the result in the buffer
+                end
                 end
             end
 
@@ -284,7 +289,11 @@ always_comb begin
             end
             if(middle_conv_result_valid) begin
                 conv_result_valid = 1;
-                conv_result = middle_conv_result_temp + previous_result_buffer[result_col_counter]; // Add the result to the buffer
+                if(channel_counter == 0) begin
+                    conv_result = middle_conv_result_temp;
+                end else begin
+                    conv_result = middle_conv_result_temp + previous_result_buffer[result_col_counter]; // Add the result to the buffer
+                end
                 if(result_col_counter < pic_size - 1) begin
                     result_col_counter_n = result_col_counter + 1; // Increment the result column counter
                 end else begin
@@ -307,6 +316,7 @@ always_comb begin
                     col_counter_next = 0; // Reset the column counter
                     if(row_counter == pic_size - 1) begin
                         row_counter_next = 0;
+                        need_weight_reg_n = 1; // Reset the need weight register signal
                     //     need_weight_reg_n = 1;
                     //     init_pic_buffer_n = 1;
                     //     weight_addr_valid_n = 1;
@@ -317,6 +327,7 @@ always_comb begin
                     //         init_pic_buffer_n = 0;
                             channel_counter_next = 0; // Reset the channel counter
                             conv_finish_reg_n = 1; // Set the convolution finish signal
+                            state_n = IDLE; // Move to IDLE state
                     //         PE_enable = 0; // Disable the PE module
                     //         if(kernel_counter == kernel_number - 1) begin
                     //             kernel_counter_next = 0; // Reset the filter counter
