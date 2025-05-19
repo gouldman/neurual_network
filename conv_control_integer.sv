@@ -5,8 +5,8 @@ module conv_control_integer#(
     parameter pic_size = 28,
     parameter kernel_number = 1,
     parameter channel = 1, // Number of channels
-    parameter conv_result_bits = 8
-    // parameter conv_result_bits = $clog2(kernel_size*kernel_size*kernel_number*channel) + weight_bits + 1
+    //parameter conv_result_bits = 8
+    parameter conv_result_bits = $clog2(kernel_size*kernel_size*kernel_number*channel) + weight_bits + 1
     // parameter SIGN = 1, // 1 for signed, 0 for unsigned
     // parameter FP_POSITIONS = 4, // Number of bits for the fractional part
 
@@ -19,11 +19,13 @@ module conv_control_integer#(
     output logic need_pic,
     output logic conv_finish,
     output logic conv_result_valid, // Output valid signal
-    output logic [conv_result_bits - 1:0] conv_result, // Result of the multiplication
+    output logic [8 - 1:0] conv_result, // Result of the multiplication
     output logic [$clog2(pic_size*pic_size)-1:0] conv_result_addr, // Counter for picture size
     output logic read_sram_enable,
     input logic [pic_bits - 1:0] sram_data_valid,
-    input logic [pic_bits - 1:0] sram_data
+    input logic [pic_bits - 1:0] sram_data,
+    input logic weight_data_valid,
+    input logic [weight_bits - 1:0] weight_data
 );
 typedef enum logic [1:0] {IDLE, RD, CAL} state_t; // State machine for control
 localparam int PADDING = 4;
@@ -50,16 +52,25 @@ logic [$clog2(pic_size) - 1:0] result_col_counter, result_col_counter_n; // Coun
 logic [$clog2(pic_size * pic_size) - 1:0] result_addr_counter,result_addr_counter_n; // Counter for picture size
 
 logic [$clog2(kernel_number)-1:0] kernel_counter, kernel_counter_next; // Counter for filter number
+
+
+/*
 logic [$clog2(kernel_size*kernel_size*kernel_number*channel)-1:0] weight_addr, weight_addr_n; // Address for weight RAM
 logic [$clog2(kernel_size*kernel_size)-1:0] weight_counter,weight_counter_n; // Address for kernel RAM
 logic weight_addr_valid, weight_addr_valid_n; // Address valid signal for weight RAM
 logic [weight_bits - 1:0] weight_buffer [kernel_size * kernel_size - 1:0]; // Buffer for weight data
 logic [weight_bits - 1:0] weight_data; // Data from weight RAM
 logic weight_data_valid; // Data valid signal from weight RAM
+*/
+logic [weight_bits - 1:0] weight_buffer [kernel_size * kernel_size - 1:0]; // Buffer for weight data
+logic [$clog2(kernel_size*kernel_size)-1:0] weight_counter,weight_counter_n; // Address for kernel RAM
+
+
 logic PE_enable,PE_enable_n; // Enable signal for the PE module
 logic [pic_bits - 1:0] shift_window [kernel_size * kernel_size - 1:0];
-logic [conv_result_bits - 1:0] middle_conv_result, middle_conv_result_temp; // Result of the convolution
+logic [conv_result_bits - 1:0] middle_conv_result_temp; // Result of the convolution
 logic middle_conv_result_valid; // Valid signal for the convolution result
+logic [conv_result_bits - 1:0] sum_temp; // Temporary result of the convolution
 state_t state, state_n; // State machine for control
 
 logic conv_finish_reg, conv_finish_reg_n; // Register for convolution finish signal
@@ -80,8 +91,8 @@ always_ff @(posedge clk or negedge rst_n) begin
         update_c_counter <= 0; // Reset the update first column counter signal
         state <= IDLE; // Reset the state machine to IDLE state
         kernel_counter <= 0; // Reset the filter counter
-        weight_addr <= 0; // Reset the weight address
-        weight_addr_valid <= 0; // Reset the weight address valid signal
+        // weight_addr <= 0; // Reset the weight address
+        // weight_addr_valid <= 0; // Reset the weight address valid signal
         weight_counter <= 0;
         previous_result_address_counter <= 0;
         previous_result_counter <= 0; // Reset the result counter
@@ -107,8 +118,8 @@ always_ff @(posedge clk or negedge rst_n) begin
         weight_counter <= weight_counter_n; // Update the weight counter
         state <= state_n; // Update the state machine
         kernel_counter <= kernel_counter_next; // Update the filter counter
-        weight_addr <= weight_addr_n; // Update the weight address
-        weight_addr_valid <= weight_addr_valid_n; // Update the weight address valid signal
+        // weight_addr <= weight_addr_n; // Update the weight address
+        // weight_addr_valid <= weight_addr_valid_n; // Update the weight address valid signal
         previous_result_address_counter <= previous_result_address_counter_n; // Update the result address counter
         previous_result_counter <= previous_result_counter_n; // Update the result counter
         update_previous_result <= update_previous_result_n; // Update the update previous result signal
@@ -127,6 +138,7 @@ always_comb begin
     conv_result_valid = 0; // Default to zero
     conv_result = 0; // Default to zero
     conv_result_addr = 0;
+    sum_temp = 0;
     state_n = state; // Default to current state
     need_pic_reg_n = need_pic_reg; // Default to current need picture register value
     update_pic_buffer_n = update_pic_buffer; // Default to current update picture buffer signal
@@ -137,8 +149,8 @@ always_comb begin
     col_counter_next = col_counter; // Default to current column counter
     channel_counter_next = channel_counter; // Default to current channel counter
     kernel_counter_next = kernel_counter; // Default to current filter counter
-    weight_addr_n = weight_addr; // Default to current weight address
-    weight_addr_valid_n = 0; // Default to current weight address valid signal
+    // weight_addr_n = weight_addr; // Default to current weight address
+    // weight_addr_valid_n = 0; // Default to current weight address valid signal
     need_weight_reg_n = need_weight_reg; // Default to current need weight register signal
     weight_counter_n = weight_counter;
     previous_result_address_counter_n = previous_result_address_counter; // Default to current result address counter
@@ -207,28 +219,37 @@ always_comb begin
             end
 
             if(need_weight_reg) begin
-                if(weight_counter < 25 && (weight_counter != 0 || weight_addr_valid)) begin
-                    weight_addr_n = weight_addr + 1; // Increment the weight address
-                end
-                if(weight_counter >= 24) begin
-                    weight_addr_valid_n = 0;
-                end else begin
-                    weight_addr_valid_n = 1; // Set the weight address valid signal
-                end
-                if(weight_counter == 25) begin
-                    if(channel_counter == channel - 1) begin
-                        weight_addr_n = 0; // Reset the weight address
-                    end    
-                    need_weight_reg_n = 0;
-                    weight_counter_n = 0; // Reset the weight counter
-                end else begin
-                    if(weight_counter != 0 || weight_addr_valid) begin
-                        weight_counter_n = weight_counter + 1; // Increment the weight address
-                    end
+                // if(weight_counter < 25 && (weight_counter != 0 || weight_addr_valid)) begin
+                //     weight_addr_n = weight_addr + 1; // Increment the weight address
+                // end
+                // if(weight_counter >= 24) begin
+                //     weight_addr_valid_n = 0;
+                // end else begin
+                //     weight_addr_valid_n = 1; // Set the weight address valid signal
+                // end
+                // if(weight_counter == 25) begin
+                //     if(channel_counter == channel - 1) begin
+                //         weight_addr_n = 0; // Reset the weight address
+                //     end    
+                //     need_weight_reg_n = 0;
+                //     weight_counter_n = 0; // Reset the weight counter
+                // end else begin
+                //     if(weight_counter != 0 || weight_addr_valid) begin
+                //         weight_counter_n = weight_counter + 1; // Increment the weight address
+                //     end
 
-                end
+                // end
+                // if(weight_data_valid) begin
+                //     weight_buffer[weight_counter - 1] = weight_data;
+                // end
                 if(weight_data_valid) begin
-                    weight_buffer[weight_counter - 1] = weight_data;
+                    weight_buffer[weight_counter] = weight_data; // Store the weight data in the buffer
+                    if(weight_counter < kernel_size * kernel_size - 1) begin
+                        weight_counter_n = weight_counter + 1; // Increment the weight counter
+                    end else begin
+                        need_weight_reg_n = 0; // Reset the need weight register signal
+                        weight_counter_n = 0; // Reset the weight counter
+                    end
                 end
             end
             if(init_pic_buffer) begin
@@ -293,9 +314,10 @@ always_comb begin
             if(middle_conv_result_valid) begin
                 conv_result_valid = 1;
                 if(channel_counter == 0) begin
-                    conv_result = middle_conv_result_temp;
+                    conv_result = middle_conv_result_temp > 127 ? 127 : middle_conv_result_temp[7:0];
                 end else begin
-                    conv_result = middle_conv_result_temp + previous_result_buffer[result_col_counter]; // Add the result to the buffer
+                    sum_temp = middle_conv_result_temp + previous_result_buffer[result_col_counter]; // Add the result to the buffer
+                    conv_result = sum_temp > 127 ? 127 : sum_temp[7:0]; // Add the result to the buffer
                 end
                 if(result_col_counter < pic_size - 1) begin
                     result_col_counter_n = result_col_counter + 1; // Increment the result column counter
@@ -379,17 +401,17 @@ always_comb begin
     endcase
 end
 
-weight_ram_wrapper #(
-    .DATA_WIDTH(weight_bits),
-    .DATA_DEPTH(256) // Adjust as needed
-) weight_ram (
-    .clk(clk),
-    .rst_n(rst_n),
-    .address(weight_addr),
-    .address_valid(weight_addr_valid), // Always valid for this example
-    .read_data(weight_data), // Connect to the output result
-    .read_data_valid(weight_data_valid) // Connect to the output valid signal
-);
+// weight_ram_wrapper #(
+//     .DATA_WIDTH(weight_bits),
+//     .DATA_DEPTH(256) // Adjust as needed
+// ) weight_ram (
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .address(weight_addr),
+//     .address_valid(weight_addr_valid), // Always valid for this example
+//     .read_data(weight_data), // Connect to the output result
+//     .read_data_valid(weight_data_valid) // Connect to the output valid signal
+// );
 
 // PE #(
 //     .SIGN(SIGN),

@@ -8,9 +8,7 @@ vsim -novopt work.conv_control_integer_tb
 
 #add wave  -radix unsigned  *
 add wave -radix unsigned dut/*
-add wave -radix unsigned dut/weight_ram/*
-add wave -position insertpoint  \
-sim:/conv_control_integer_tb/dut/weight_counter
+
 
 
 add wave -radix unsigned dut/pe/*
@@ -18,8 +16,7 @@ add wave -position insertpoint  \
 sim:/conv_control_integer_tb/dut/pe/pic
 add wave -position insertpoint  \
 sim:/conv_control_integer_tb/dut/pe/result
-add wave -position insertpoint  \
-sim:/conv_control_integer_tb/dut/pe/weight
+
 
 
 # 6. 在控制台显示仿真中的变量值

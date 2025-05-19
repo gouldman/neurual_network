@@ -29,6 +29,8 @@ module conv_control_integer_tb;
   logic read_sram_enable;
   logic [pic_bits - 1:0] sram_data_valid;
   logic [pic_bits - 1:0] sram_data;
+  logic weight_data_valid;
+  logic [weight_bits - 1:0] weight_data;
 
   // ----------------------------
   // Clock Generation
@@ -62,7 +64,9 @@ module conv_control_integer_tb;
     .conv_result_addr(conv_result_addr),
     .read_sram_enable(read_sram_enable),
     .sram_data_valid(sram_data_valid),
-    .sram_data(sram_data)
+    .sram_data(sram_data),
+    .weight_data_valid(weight_data_valid),
+    .weight_data(weight_data)
 
   );
 
@@ -77,6 +81,8 @@ module conv_control_integer_tb;
       conv_start = 0;
       sram_data_valid = '0;
       sram_data = '0;
+      weight_data_valid = '0;
+      weight_data = '0;
       @(posedge clk);
       @(posedge clk);
       rst_n = 1;
@@ -95,6 +101,8 @@ module conv_control_integer_tb;
     #100;
     pic_valid = 1;
     pic = 1;
+    weight_data_valid = 1;
+    weight_data = 2;
     #100000;
 
     $finish;
