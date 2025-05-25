@@ -1,7 +1,6 @@
 vlib work
 
-vlog SPHD110420.v  delay_module.sv
-vlog weight_ram_wrapper.sv
+vlog delay_module.sv
 vlog twenty_five_adder_tree_integer.sv PE_integer.sv conv_control_integer.sv conv_control_integer_tb.sv
 
 vsim -novopt work.conv_control_integer_tb

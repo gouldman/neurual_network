@@ -1,0 +1,4 @@
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pe/pic
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pe/weight

@@ -1,0 +1,231 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dD:/learning/lund/neurual_network/maincode
+vadder
+Z1 DXx6 sv_std 3 std 0 22 WmjPaeP=7F5?QFXzJ>D[Q2
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+r1
+!s85 0
+31
+!i10b 1
+!s100 _XmY3P4l[Jf1HQV0Cl<]o1
+IBZBl[Vg1gaSP<NHSLA6EQ3
+Z3 !s105 twenty_five_adder_tree_integer_sv_unit
+S1
+R0
+Z4 w1747843531
+Z5 8twenty_five_adder_tree_integer.sv
+Z6 Ftwenty_five_adder_tree_integer.sv
+L0 464
+Z7 OL;L;10.4;61
+Z8 !s108 1748014121.102000
+Z9 !s107 conv_control_integer_tb.sv|conv_control_integer.sv|PE_integer.sv|twenty_five_adder_tree_integer.sv|
+Z10 !s90 -reportprogress|300|twenty_five_adder_tree_integer.sv|PE_integer.sv|conv_control_integer.sv|conv_control_integer_tb.sv|
+!i113 0
+Z11 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+vconv_control_integer
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 Wo9mRBla3MDCH_i[5oUNn1
+I4XdRVD3NMkf<EF6bCgSfF1
+!s105 conv_control_integer_sv_unit
+S1
+R0
+w1748003319
+8conv_control_integer.sv
+Fconv_control_integer.sv
+L0 1
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vconv_control_integer_tb
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 <Yd;z8Q]V::`jBc^z<DPD3
+Ih9XghP6kh:>bHAGi98Tnk0
+!s105 conv_control_integer_tb_sv_unit
+S1
+R0
+w1747658051
+8conv_control_integer_tb.sv
+Fconv_control_integer_tb.sv
+L0 3
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vdelay_module
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 ZeE_;Q5o_:4PQCg^CEeoE0
+ImNFf3U4fJI_FNHMCdFE1j1
+!s105 delay_module_sv_unit
+S1
+R0
+w1745683542
+8delay_module.sv
+Fdelay_module.sv
+L0 1
+R7
+!s108 1748014121.012000
+!s107 delay_module.sv|
+!s90 -reportprogress|300|delay_module.sv|
+!i113 0
+R11
+veight_adder
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 1bdYn=RhEFGIj]5=54KME3
+IU0APZfT78>V4[NV@QX7bQ0
+R3
+S1
+R0
+R4
+R5
+R6
+L0 314
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vfour_adder
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 ?U@5[N9O=2Nl]KF<6DQU21
+IJh2D9SWz8;^4F7Valhjge1
+R3
+S1
+R0
+R4
+R5
+R6
+L0 393
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vPE_integer
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 E`=l3`H94o4N@H0LeKGEi2
+I]:MhD3loTHDDzMHX[HEQk0
+!s105 PE_integer_sv_unit
+S1
+R0
+w1747902708
+8PE_integer.sv
+FPE_integer.sv
+L0 1
+R7
+R8
+R9
+R10
+!i113 0
+R11
+n@p@e_integer
+vsixteen_adder
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 49hDebXJ;0CLCmMOS:6F_1
+IaceX^kA@VzJ4WzFgIab3G1
+R3
+S1
+R0
+R4
+R5
+R6
+L0 215
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vthirty_two_adder
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 EbJBd9i7><8[d9>KMZL>C0
+I_IDFVEE7Y9;KgJnV8E`OY0
+R3
+S1
+R0
+R4
+R5
+R6
+L0 87
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vtwenty_five_adder_tree_integer
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 9ZQ2CLVl=S]ARnzBOg@CK1
+ITk^JWWWbREaVmK`M3Glmm2
+R3
+S1
+R0
+R4
+R5
+R6
+L0 1
+R7
+R8
+R9
+R10
+!i113 0
+R11

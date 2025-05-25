@@ -1,7 +1,6 @@
 vlib work
 
-vlog SPHD110420.v  delay_module.sv
-vlog weight_ram_wrapper.sv
+vlog delay_module.sv
 vlog twenty_five_adder_tree_integer.sv PE_integer.sv conv_control_integer.sv conv_control_integer_tb.sv
 
 vsim -novopt work.conv_control_integer_tb
@@ -18,6 +17,8 @@ add wave -position insertpoint  \
 sim:/conv_control_integer_tb/dut/pe/result
 
 
+add wave -position insertpoint  \
+sim:/conv_control_integer_tb/dut/pic_buffer
 
 # 6. 在控制台显示仿真中的变量值
 write timing
