@@ -1,13 +1,13 @@
 vlib work
 
-vlog delay_module.sv
+vlog delay_module.sv fake_sram.sv
 vlog twenty_five_adder_tree_integer.sv PE_integer.sv serial_conv_control_integer.sv serial_conv_control_integer_tb.sv
 
 vsim -novopt work.serial_conv_control_integer_tb
 
 #add wave  -radix unsigned  *
 add wave -radix unsigned dut/*
-
+add wave -radix unsigned fake_sram_inst/*
 
 
 add wave -radix unsigned dut/pe/*

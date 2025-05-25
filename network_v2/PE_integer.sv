@@ -4,7 +4,7 @@ module PE_integer#(
     parameter kernel_size =5,
     parameter kernel_number = 1,
     parameter channel = 3, // Number of channels
-    parameter conv_result_bits = 16
+    parameter conv_result_bits = pic_bits * 2 + 5
     // parameter SIGN = 1, // 1 for signed, 0 for unsigned
     // parameter FP_POSITIONS = 4, // Number of bits for the fractional part
 )(
@@ -16,7 +16,7 @@ module PE_integer#(
     output logic [conv_result_bits - 1:0] result, // Output result
     output logic result_valid // Output valid signal
 );
-    logic [conv_result_bits - 1:0] fm_results [kernel_size * kernel_size - 1:0];
+    logic [pic_bits*2 - 1:0] fm_results [kernel_size * kernel_size - 1:0];
         for (genvar i = 0; i < kernel_size * kernel_size; i = i + 1) begin : fm_unit
             // FPMU #(
             //     .SIGN(SIGN),
@@ -40,7 +40,7 @@ module PE_integer#(
     //     .result(result)
     // );
 twenty_five_adder_tree_integer #(
-    .pic_bits(pic_bits),
+    .pic_bits(pic_bits * 2),
     .weight_bits(weight_bits),
     .kernel_size(kernel_size),
     .kernel_number(kernel_number),

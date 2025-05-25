@@ -1,38 +1,38 @@
 module twenty_five_adder_tree_integer#(
-    parameter pic_bits = 2,
+    parameter pic_bits = 8,
     parameter weight_bits = 8,
     parameter kernel_size = 5,
     parameter kernel_number = 1,
     parameter channel = 1,
-    parameter conv_result_bits = 16
+    parameter conv_result_bits = pic_bits * 2 + 5
 )(
     input logic clk,
     input logic rst_n,
-    input logic [conv_result_bits-1:0] input_data_0,
-    input logic [conv_result_bits-1:0] input_data_1,
-    input logic [conv_result_bits-1:0] input_data_2,
-    input logic [conv_result_bits-1:0] input_data_3,
-    input logic [conv_result_bits-1:0] input_data_4,
-    input logic [conv_result_bits-1:0] input_data_5,
-    input logic [conv_result_bits-1:0] input_data_6,
-    input logic [conv_result_bits-1:0] input_data_7,
-    input logic [conv_result_bits-1:0] input_data_8,
-    input logic [conv_result_bits-1:0] input_data_9,
-    input logic [conv_result_bits-1:0] input_data_10,
-    input logic [conv_result_bits-1:0] input_data_11,
-    input logic [conv_result_bits-1:0] input_data_12,
-    input logic [conv_result_bits-1:0] input_data_13,
-    input logic [conv_result_bits-1:0] input_data_14,
-    input logic [conv_result_bits-1:0] input_data_15,
-    input logic [conv_result_bits-1:0] input_data_16,
-    input logic [conv_result_bits-1:0] input_data_17,
-    input logic [conv_result_bits-1:0] input_data_18,
-    input logic [conv_result_bits-1:0] input_data_19,
-    input logic [conv_result_bits-1:0] input_data_20,
-    input logic [conv_result_bits-1:0] input_data_21,
-    input logic [conv_result_bits-1:0] input_data_22,
-    input logic [conv_result_bits-1:0] input_data_23,
-    input logic [conv_result_bits-1:0] input_data_24,
+    input logic [pic_bits-1:0] input_data_0,
+    input logic [pic_bits-1:0] input_data_1,
+    input logic [pic_bits-1:0] input_data_2,
+    input logic [pic_bits-1:0] input_data_3,
+    input logic [pic_bits-1:0] input_data_4,
+    input logic [pic_bits-1:0] input_data_5,
+    input logic [pic_bits-1:0] input_data_6,
+    input logic [pic_bits-1:0] input_data_7,
+    input logic [pic_bits-1:0] input_data_8,
+    input logic [pic_bits-1:0] input_data_9,
+    input logic [pic_bits-1:0] input_data_10,
+    input logic [pic_bits-1:0] input_data_11,
+    input logic [pic_bits-1:0] input_data_12,
+    input logic [pic_bits-1:0] input_data_13,
+    input logic [pic_bits-1:0] input_data_14,
+    input logic [pic_bits-1:0] input_data_15,
+    input logic [pic_bits-1:0] input_data_16,
+    input logic [pic_bits-1:0] input_data_17,
+    input logic [pic_bits-1:0] input_data_18,
+    input logic [pic_bits-1:0] input_data_19,
+    input logic [pic_bits-1:0] input_data_20,
+    input logic [pic_bits-1:0] input_data_21,
+    input logic [pic_bits-1:0] input_data_22,
+    input logic [pic_bits-1:0] input_data_23,
+    input logic [pic_bits-1:0] input_data_24,
     output logic [conv_result_bits-1:0] result
 );
 
@@ -85,53 +85,53 @@ module twenty_five_adder_tree_integer#(
 endmodule
 
 module thirty_two_adder#(
-    parameter pic_bits = 2,
+    parameter pic_bits = 8,
     parameter weight_bits = 8,
     parameter kernel_size = 5,
     parameter kernel_number = 1,
     parameter channel = 1,
-    parameter conv_result_bits = 16
+    parameter conv_result_bits = pic_bits * 2 + 5
 )(
     input logic clk,
     input logic rst_n,
     // 32 individual input data signals
-    input logic [conv_result_bits-1:0] input_data_0,
-    input logic [conv_result_bits-1:0] input_data_1,
-    input logic [conv_result_bits-1:0] input_data_2,
-    input logic [conv_result_bits-1:0] input_data_3,
-    input logic [conv_result_bits-1:0] input_data_4,
-    input logic [conv_result_bits-1:0] input_data_5,
-    input logic [conv_result_bits-1:0] input_data_6,
-    input logic [conv_result_bits-1:0] input_data_7,
-    input logic [conv_result_bits-1:0] input_data_8,
-    input logic [conv_result_bits-1:0] input_data_9,
-    input logic [conv_result_bits-1:0] input_data_10,
-    input logic [conv_result_bits-1:0] input_data_11,
-    input logic [conv_result_bits-1:0] input_data_12,
-    input logic [conv_result_bits-1:0] input_data_13,
-    input logic [conv_result_bits-1:0] input_data_14,
-    input logic [conv_result_bits-1:0] input_data_15,
-    input logic [conv_result_bits-1:0] input_data_16,
-    input logic [conv_result_bits-1:0] input_data_17,
-    input logic [conv_result_bits-1:0] input_data_18,
-    input logic [conv_result_bits-1:0] input_data_19,
-    input logic [conv_result_bits-1:0] input_data_20,
-    input logic [conv_result_bits-1:0] input_data_21,
-    input logic [conv_result_bits-1:0] input_data_22,
-    input logic [conv_result_bits-1:0] input_data_23,
-    input logic [conv_result_bits-1:0] input_data_24,
-    input logic [conv_result_bits-1:0] input_data_25,
-    input logic [conv_result_bits-1:0] input_data_26,
-    input logic [conv_result_bits-1:0] input_data_27,
-    input logic [conv_result_bits-1:0] input_data_28,
-    input logic [conv_result_bits-1:0] input_data_29,
-    input logic [conv_result_bits-1:0] input_data_30,
-    input logic [conv_result_bits-1:0] input_data_31,
+    input logic [pic_bits-1:0] input_data_0,
+    input logic [pic_bits-1:0] input_data_1,
+    input logic [pic_bits-1:0] input_data_2,
+    input logic [pic_bits-1:0] input_data_3,
+    input logic [pic_bits-1:0] input_data_4,
+    input logic [pic_bits-1:0] input_data_5,
+    input logic [pic_bits-1:0] input_data_6,
+    input logic [pic_bits-1:0] input_data_7,
+    input logic [pic_bits-1:0] input_data_8,
+    input logic [pic_bits-1:0] input_data_9,
+    input logic [pic_bits-1:0] input_data_10,
+    input logic [pic_bits-1:0] input_data_11,
+    input logic [pic_bits-1:0] input_data_12,
+    input logic [pic_bits-1:0] input_data_13,
+    input logic [pic_bits-1:0] input_data_14,
+    input logic [pic_bits-1:0] input_data_15,
+    input logic [pic_bits-1:0] input_data_16,
+    input logic [pic_bits-1:0] input_data_17,
+    input logic [pic_bits-1:0] input_data_18,
+    input logic [pic_bits-1:0] input_data_19,
+    input logic [pic_bits-1:0] input_data_20,
+    input logic [pic_bits-1:0] input_data_21,
+    input logic [pic_bits-1:0] input_data_22,
+    input logic [pic_bits-1:0] input_data_23,
+    input logic [pic_bits-1:0] input_data_24,
+    input logic [pic_bits-1:0] input_data_25,
+    input logic [pic_bits-1:0] input_data_26,
+    input logic [pic_bits-1:0] input_data_27,
+    input logic [pic_bits-1:0] input_data_28,
+    input logic [pic_bits-1:0] input_data_29,
+    input logic [pic_bits-1:0] input_data_30,
+    input logic [pic_bits-1:0] input_data_31,
     output logic [conv_result_bits-1:0] result
 );
 
     // Intermediate results
-    logic [conv_result_bits-1:0] sum0, sum1;
+    logic [conv_result_bits-2:0] sum0, sum1;
 
     // Instantiate first sixteen_adder: processes input_data_0 to input_data_15
     sixteen_adder #(
@@ -140,7 +140,7 @@ module thirty_two_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) adder_0 (
         .clk(clk),
         .rst_n(rst_n),
@@ -171,7 +171,7 @@ module thirty_two_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) adder_1 (
         .clk(clk),
         .rst_n(rst_n),
@@ -198,7 +198,7 @@ module thirty_two_adder#(
     // Instantiate adder: adds sum0 and sum1 (assuming 'adder' module sums two inputs)
     // The 'adder' module needs to be defined to take two individual inputs.
     adder #(
-        .pic_bits(pic_bits),
+        .pic_bits(conv_result_bits - 1),
         .weight_bits(weight_bits),
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
@@ -223,27 +223,27 @@ module sixteen_adder#(
     input logic clk,
     input logic rst_n,
     // 16 individual input data signals
-    input logic [conv_result_bits-1:0] input_data_0,
-    input logic [conv_result_bits-1:0] input_data_1,
-    input logic [conv_result_bits-1:0] input_data_2,
-    input logic [conv_result_bits-1:0] input_data_3,
-    input logic [conv_result_bits-1:0] input_data_4,
-    input logic [conv_result_bits-1:0] input_data_5,
-    input logic [conv_result_bits-1:0] input_data_6,
-    input logic [conv_result_bits-1:0] input_data_7,
-    input logic [conv_result_bits-1:0] input_data_8,
-    input logic [conv_result_bits-1:0] input_data_9,
-    input logic [conv_result_bits-1:0] input_data_10,
-    input logic [conv_result_bits-1:0] input_data_11,
-    input logic [conv_result_bits-1:0] input_data_12,
-    input logic [conv_result_bits-1:0] input_data_13,
-    input logic [conv_result_bits-1:0] input_data_14,
-    input logic [conv_result_bits-1:0] input_data_15,
+    input logic [pic_bits-1:0] input_data_0,
+    input logic [pic_bits-1:0] input_data_1,
+    input logic [pic_bits-1:0] input_data_2,
+    input logic [pic_bits-1:0] input_data_3,
+    input logic [pic_bits-1:0] input_data_4,
+    input logic [pic_bits-1:0] input_data_5,
+    input logic [pic_bits-1:0] input_data_6,
+    input logic [pic_bits-1:0] input_data_7,
+    input logic [pic_bits-1:0] input_data_8,
+    input logic [pic_bits-1:0] input_data_9,
+    input logic [pic_bits-1:0] input_data_10,
+    input logic [pic_bits-1:0] input_data_11,
+    input logic [pic_bits-1:0] input_data_12,
+    input logic [pic_bits-1:0] input_data_13,
+    input logic [pic_bits-1:0] input_data_14,
+    input logic [pic_bits-1:0] input_data_15,
     output logic [conv_result_bits-1:0] result
 );
 
     // Intermediate results
-    logic [conv_result_bits-1:0] sum0, sum1;
+    logic [conv_result_bits-2:0] sum0, sum1;
 
     // Instantiate first eight_adder: processes input_data_0 to input_data_7
     eight_adder #(
@@ -252,7 +252,7 @@ module sixteen_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) adder_0 (
         .clk(clk),
         .rst_n(rst_n),
@@ -275,7 +275,7 @@ module sixteen_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) adder_1 (
         .clk(clk),
         .rst_n(rst_n),
@@ -294,7 +294,7 @@ module sixteen_adder#(
     // Instantiate an 'adder' module to sum sum0 and sum1
     // (This assumes the 'adder' module takes two individual inputs, as defined previously)
     adder #(
-        .pic_bits(pic_bits),
+        .pic_bits(conv_result_bits - 1),
         .weight_bits(weight_bits),
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
@@ -322,19 +322,19 @@ module eight_adder#(
     input logic clk,
     input logic rst_n,
     // 8 individual input data signals
-    input logic [conv_result_bits-1:0] input_data_0,
-    input logic [conv_result_bits-1:0] input_data_1,
-    input logic [conv_result_bits-1:0] input_data_2,
-    input logic [conv_result_bits-1:0] input_data_3,
-    input logic [conv_result_bits-1:0] input_data_4,
-    input logic [conv_result_bits-1:0] input_data_5,
-    input logic [conv_result_bits-1:0] input_data_6,
-    input logic [conv_result_bits-1:0] input_data_7,
+    input logic [pic_bits-1:0] input_data_0,
+    input logic [pic_bits-1:0] input_data_1,
+    input logic [pic_bits-1:0] input_data_2,
+    input logic [pic_bits-1:0] input_data_3,
+    input logic [pic_bits-1:0] input_data_4,
+    input logic [pic_bits-1:0] input_data_5,
+    input logic [pic_bits-1:0] input_data_6,
+    input logic [pic_bits-1:0] input_data_7,
     output logic [conv_result_bits-1:0] result
 );
 
     // Intermediate results
-    logic [conv_result_bits-1:0] sum_quad0, sum_quad1;
+    logic [conv_result_bits-2:0] sum_quad0, sum_quad1;
 
     // Instantiate first four_adder: processes input_data_0 to input_data_3
     four_adder #(
@@ -343,7 +343,7 @@ module eight_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) four_adder_0 (
         .clk(clk),
         .rst_n(rst_n),
@@ -361,7 +361,7 @@ module eight_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) four_adder_1 (
         .clk(clk),
         .rst_n(rst_n),
@@ -374,7 +374,7 @@ module eight_adder#(
 
     // Instantiate an 'adder' module to sum sum_quad0 and sum_quad1
     adder #(
-        .pic_bits(pic_bits),
+        .pic_bits(conv_result_bits - 1),
         .weight_bits(weight_bits),
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
@@ -401,15 +401,15 @@ module four_adder#(
     input logic clk,
     input logic rst_n,
     // Four individual input data signals
-    input logic [conv_result_bits-1:0] input_data_0,
-    input logic [conv_result_bits-1:0] input_data_1,
-    input logic [conv_result_bits-1:0] input_data_2,
-    input logic [conv_result_bits-1:0] input_data_3,
+    input logic [pic_bits-1:0] input_data_0,
+    input logic [pic_bits-1:0] input_data_1,
+    input logic [pic_bits-1:0] input_data_2,
+    input logic [pic_bits-1:0] input_data_3,
     output logic [conv_result_bits-1:0] result
 );
 
     // Intermediate results
-    logic [conv_result_bits-1:0] sum0, sum1;
+    logic [conv_result_bits-2:0] sum0, sum1;
 
     // Instantiate first adder: sums input_data_0 and input_data_1
     adder #(
@@ -418,7 +418,7 @@ module four_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) adder_0 (
         .clk(clk),
         .rst_n(rst_n),
@@ -434,7 +434,7 @@ module four_adder#(
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
         .channel(channel),
-        .conv_result_bits(conv_result_bits)
+        .conv_result_bits(conv_result_bits - 1)
     ) adder_1 (
         .clk(clk),
         .rst_n(rst_n),
@@ -445,7 +445,7 @@ module four_adder#(
 
     // Instantiate third adder: sums sum0 and sum1
     adder #(
-        .pic_bits(pic_bits),
+        .pic_bits(conv_result_bits - 1),
         .weight_bits(weight_bits),
         .kernel_size(kernel_size),
         .kernel_number(kernel_number),
@@ -471,8 +471,8 @@ module adder#(
 )(
     input logic clk,
     input logic rst_n, // Active low reset
-    input logic [conv_result_bits-1:0] input_data_0, // First input signal
-    input logic [conv_result_bits-1:0] input_data_1, // Second input signal
+    input logic [pic_bits-1:0] input_data_0, // First input signal
+    input logic [pic_bits-1:0] input_data_1, // Second input signal
     output logic [conv_result_bits-1:0] result // Result of the addition, registered output
 );
 

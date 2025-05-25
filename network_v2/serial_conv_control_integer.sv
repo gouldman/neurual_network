@@ -13,15 +13,15 @@ module serial_conv_control_integer#(
     input logic conv_start,
     input logic [input_data_bits-1:0] parallel_pic,
     input logic parallel_pic_valid,
-    input logic [input_data_bits-1:0] parallel_previous_result,
-    input logic parallel_previous_result_valid,
+    input logic [pic_bits-1:0] previous_result,
+    input logic previous_result_valid,
     input logic [input_data_bits-1:0] parallel_weight_data,
     input logic parallel_weight_data_valid,
 
     output logic need_pic,
     output logic conv_finish,
-    output logic [8 - 1:0] conv_result,
-    output logic [$clog2(pic_size*pic_size/serial_to_parallel_coe) - 1:0] conv_result_addr,
+    output logic [pic_bits - 1:0] conv_result,
+    output logic [$clog2(pic_size*pic_size) - 1:0] conv_result_addr,
     output logic conv_result_valid,
     output logic read_previous_result_enable
 );
@@ -42,8 +42,8 @@ logic [pic_bits-1:0] weight_buffer_n [kernel_size * kernel_size-1:0];
 //declare the RD state counters
 logic [1:0] update_first_row_counter, update_first_row_counter_n;
 logic [$clog2(pic_size / serial_to_parallel_coe) - 1:0] update_col_counter, update_col_counter_n;
-logic [$clog2(pic_size / serial_to_parallel_coe) - 1:0] update_previous_result_buffer_counter, update_previous_result_buffer_counter_n;
-logic [$clog2(pic_size * pic_size / serial_to_parallel_coe) - 1:0] previous_result_addr_counter, previous_result_addr_counter_n;
+logic [$clog2(pic_size) - 1:0] update_previous_result_buffer_counter, update_previous_result_buffer_counter_n;
+logic [$clog2(pic_size * pic_size) - 1:0] previous_result_addr_counter, previous_result_addr_counter_n;
 logic [$clog2(7) - 1:0] update_weight_buffer_counter, update_weight_buffer_counter_n;
 
 //declare the CAL state counters
@@ -52,9 +52,10 @@ logic [$clog2(pic_size) - 1:0] cal_col_counter, cal_col_counter_n;
 logic [$clog2(channel_size) - 1:0] cal_channel_counter, cal_channel_counter_n;
 
 //declare the output result counters
-logic [$clog2(pic_size * pic_size / serial_to_parallel_coe) - 1:0] conv_result_addr_counter, conv_result_addr_counter_n;
+logic [$clog2(pic_size * pic_size) - 1:0] conv_result_addr_counter, conv_result_addr_counter_n;
 //logic [1:0] serial_to_parallel_conv_result_counter, serial_to_parallel_conv_result_counter_n;
-logic [$clog2(pic_size / serial_to_parallel_coe) - 1:0] conv_result_counter, conv_result_counter_n;
+logic [$clog2(pic_size) - 1:0] conv_result_counter, conv_result_counter_n;
+logic [$clog2(pic_size) - 1:0] add_previous_result_counter, add_previous_result_counter_n;
 
 //declare the control flags
 logic init_pic_buffer_flag, init_pic_buffer_flag_n;
@@ -216,11 +217,12 @@ always_comb begin
         end
 
         //update the previous_result_buffer
-        if(update_previous_result_buffer_flag && parallel_previous_result_valid && update_previous_result_buffer_counter != 0) begin
-            previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4] = parallel_previous_result[31:24];//minus one due to 1 cycle delay of sram read
-            previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4 + 1] = parallel_previous_result[23:16];
-            previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4 + 2] = parallel_previous_result[15:8];
-            previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4 + 3] = parallel_previous_result[7:0];
+        if(update_previous_result_buffer_flag && previous_result_valid && update_previous_result_buffer_counter != 0) begin
+            previous_result_buffer_n[(update_previous_result_buffer_counter - 1)] = previous_result;
+            // previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4] = parallel_previous_result[31:24];//minus one due to 1 cycle delay of sram read
+            // previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4 + 1] = parallel_previous_result[23:16];
+            // previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4 + 2] = parallel_previous_result[15:8];
+            // previous_result_buffer_n[(update_previous_result_buffer_counter - 1)*4 + 3] = parallel_previous_result[7:0];
         end
     end
 end
@@ -237,6 +239,7 @@ always_ff @(posedge clk or negedge rst_n) begin
         cal_col_counter <= 0;
         cal_channel_counter <= 0;
         conv_result_addr_counter <= 0;
+        add_previous_result_counter <= 0;
         // serial_to_parallel_conv_result_counter <= 0;
         conv_result_counter <=0;
     end else begin
@@ -249,6 +252,7 @@ always_ff @(posedge clk or negedge rst_n) begin
         cal_col_counter <= cal_col_counter_n;
         cal_channel_counter <= cal_channel_counter_n;
         conv_result_addr_counter <= conv_result_addr_counter_n;
+        add_previous_result_counter <= add_previous_result_counter_n;
         // serial_to_parallel_conv_result_counter <= serial_to_parallel_conv_result_counter_n;   
         conv_result_counter <= conv_result_counter_n;     
     end
@@ -266,6 +270,7 @@ always_comb begin
     cal_channel_counter_n = cal_channel_counter;
 
     conv_result_addr_counter_n = conv_result_addr_counter;
+    add_previous_result_counter_n = add_previous_result_counter;
     // serial_to_parallel_conv_result_counter_n = serial_to_parallel_conv_result_counter;
     conv_result_counter_n = conv_result_counter;
 
@@ -304,14 +309,14 @@ always_comb begin
         //     end
         // end
         if(update_previous_result_buffer_flag) begin
-            if(update_previous_result_buffer_counter == 8 - 1) begin
+            if(update_previous_result_buffer_counter == pic_size) begin
                 update_previous_result_buffer_counter_n = 0;
             end else begin
                 update_previous_result_buffer_counter_n = update_previous_result_buffer_counter + 1;
             end
-            if(previous_result_addr_counter == pic_size * pic_size /serial_to_parallel_coe - 1 ) begin
+            if(previous_result_addr_counter == pic_size * pic_size - 1 ) begin
                 previous_result_addr_counter_n =0;
-            end else if(update_previous_result_buffer_counter < 7)begin
+            end else if(update_previous_result_buffer_counter < pic_size)begin
                 previous_result_addr_counter_n = previous_result_addr_counter + 1;
             end
         end
@@ -334,7 +339,7 @@ always_comb begin
     end
 
     //update conv result counter
-    if(pe_result_valid) begin
+    if(conv_result_valid) begin
         if(conv_result_counter == pic_size - 1) begin
             conv_result_counter_n = 0; 
         end else begin
@@ -351,6 +356,13 @@ always_comb begin
         //     serial_to_parallel_conv_result_counter_n = serial_to_parallel_conv_result_counter + 1;
         // end
     end
+    if(pe_result_valid) begin
+        if(add_previous_result_counter == pic_size - 1) begin
+            add_previous_result_counter_n = 0;
+        end else begin
+            add_previous_result_counter_n = add_previous_result_counter + 1;
+        end
+    end
     // if(parallel_conv_result_valid) begin
     //     if(parallel_conv_result_addr_counter == pic_size * pic_size / serial_to_parallel_coe - 1) begin
     //         parallel_conv_result_addr_counter_n = 0;
@@ -361,7 +373,7 @@ always_comb begin
     // end
 end
 
-assign conv_result_addr = conv_result_addr_counter;
+assign conv_result_addr = conv_result_valid ? conv_result_addr_counter : previous_result_addr_counter;
 
 always_ff @(posedge clk or negedge rst_n) begin
     if(!rst_n) begin
@@ -401,16 +413,18 @@ always_comb begin
         if(conv_start) begin
             init_pic_buffer_flag_n = 1'b1;
             update_weight_buffer_flag_n = 1'b1;
-            need_pic_reg_n = 1'b1;
+            // need_pic_reg_n = 1'b1;
         end
     end else if(state_c == RD) begin
         if(init_pic_buffer_flag) begin
             need_pic_reg_n = 1'b0;
             init_pic_buffer_flag_n = 1'b0;
             if(cal_row_counter < 26) begin
+                need_pic_reg_n = 1'b1;
                 update_pic_buffer_flag_n = 1'b1;
             end else begin
                 update_pic_buffer_flag_n = 1'b0;
+                need_pic_reg_n = 1'b0;
             end
         end
         if(update_pic_buffer_flag) begin
@@ -431,7 +445,7 @@ always_comb begin
             end
         end
         if(update_previous_result_buffer_flag) begin
-            if(update_previous_result_buffer_counter == pic_size / serial_to_parallel_coe  && parallel_previous_result_valid) begin
+            if(update_previous_result_buffer_counter == pic_size  && previous_result_valid) begin
                 update_previous_result_buffer_flag_n = 1'b0;
             end
         end
@@ -444,9 +458,9 @@ always_comb begin
                 update_weight_buffer_flag_n = 1'b0;
             end else begin
                 init_pic_buffer_flag_n = 1'b1;
-                if(cal_row_counter < 25) begin
-                    need_pic_reg_n = 1'b1;
-                end
+                // if(cal_row_counter != 25 && cal_row_counter != 26) begin
+                //     need_pic_reg_n = 1'b1;
+                // end
                 if(cal_channel_counter == 0) begin
                     update_previous_result_buffer_flag_n = 1'b0;
                 end else begin
@@ -473,7 +487,7 @@ always_comb begin
 
     if(state_c == RD) begin
         if(update_previous_result_buffer_flag) begin
-            if(update_previous_result_buffer_counter < pic_size / serial_to_parallel_coe - 1) begin
+            if(update_previous_result_buffer_counter < pic_size - 1) begin
                 read_previous_result_enable_reg_n = 1'b1;
             end else begin
                 read_previous_result_enable_reg_n = 1'b0;
@@ -526,7 +540,7 @@ assign conv_finish = conv_finish_reg;
 assign conv_result = conv_result_reg;
 assign conv_result_valid = conv_result_valid_reg;
 assign read_previous_result_enable = read_previous_result_enable_reg;
-assign conv_result_temp = pe_result + previous_result_buffer[conv_result_counter];
+assign conv_result_temp = pe_result + previous_result_buffer[add_previous_result_counter];
 
 
 endmodule

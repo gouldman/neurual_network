@@ -20,13 +20,13 @@ logic rst_n;                                  // Active-low reset signal
 logic conv_start;                             // Convolution start signal
 logic [input_data_bits-1:0] parallel_pic;      // Input picture data
 logic parallel_pic_valid;                      // Valid signal for picture data
-logic [input_data_bits-1:0] parallel_previous_result; // Previous convolution result
-logic parallel_previous_result_valid;          // Valid signal for previous result
+logic [pic_bits-1:0] previous_result; // Previous convolution result
+logic previous_result_valid;          // Valid signal for previous result
 logic [input_data_bits-1:0] parallel_weight_data; // Weight data for convolution
 logic parallel_weight_data_valid;              // Valid signal for weight data
 logic need_pic;                               // Output signal indicating need for picture data
 logic conv_finish;                            // Output signal indicating convolution completion
-logic [pic_bits:0] conv_result; // Convolution result
+logic [pic_bits - 1:0] conv_result; // Convolution result
 logic [$clog2(pic_size*pic_size)-1:0] conv_result_addr; // Address for convolution result
 logic conv_result_valid;              // Valid signal for convolution result
 logic read_previous_result_enable;
@@ -48,8 +48,8 @@ serial_conv_control_integer dut (
     .conv_start(conv_start),
     .parallel_pic(parallel_pic),
     .parallel_pic_valid(parallel_pic_valid),
-    .parallel_previous_result(parallel_previous_result),
-    .parallel_previous_result_valid(parallel_previous_result_valid),
+    .previous_result(previous_result),
+    .previous_result_valid(previous_result_valid),
     .parallel_weight_data(parallel_weight_data),
     .parallel_weight_data_valid(parallel_weight_data_valid),
     .need_pic(need_pic),
@@ -60,6 +60,17 @@ serial_conv_control_integer dut (
     .read_previous_result_enable(read_previous_result_enable)
 );
 
+fake_sram fake_sram_inst(
+  .clk(clk),
+  .rst_n(rst_n),
+  .ce(read_previous_result_enable || conv_result_valid),
+  .we(conv_result_valid),
+  .addr(conv_result_addr),
+  .wdata(conv_result),
+  .rdata(previous_result),
+  .previous_result_valid(previous_result_valid),
+  .read_previous_result_enable(read_previous_result_enable)
+);
   // ----------------------------
   // Reset Task
   // ----------------------------
@@ -69,8 +80,6 @@ serial_conv_control_integer dut (
       parallel_pic = '0;
       parallel_pic_valid = 0;
       conv_start = 0;
-      parallel_previous_result_valid = '0;
-      parallel_previous_result = '0;
       parallel_weight_data_valid = '0;
       parallel_weight_data = '0;
       @(posedge clk);
@@ -86,13 +95,11 @@ serial_conv_control_integer dut (
   initial begin
     reset_dut(); 
     conv_start = 1;
-    parallel_previous_result = 0;
-    parallel_previous_result_valid = 1;
     #100;
     parallel_pic_valid = 1;
     parallel_pic =  32'h01010101;
     parallel_weight_data_valid = 1;
-    parallel_weight_data = 32'h06060606;
+    parallel_weight_data = 32'h01010101;
     #100000;
 
     $finish;
