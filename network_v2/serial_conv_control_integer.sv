@@ -280,7 +280,7 @@ always_comb begin
             if(update_col_counter == pic_size / serial_to_parallel_coe - 1) begin
                 update_col_counter_n = 0;
                 if(cal_row_counter == 0) begin
-                    if(update_first_row_counter == 3 - 1) begin
+                    if(update_first_row_counter == channel_size - 1) begin
                         update_first_row_counter_n = 0;
                     end else begin
                         update_first_row_counter_n = update_first_row_counter + 1;
@@ -294,7 +294,7 @@ always_comb begin
         end
         //control the weight update counter
         if(parallel_weight_data_valid && update_weight_buffer_flag) begin
-            if(update_weight_buffer_counter == 7 - 1) begin
+            if(update_weight_buffer_counter == 7 - 1) begin //7 due to (5*5 / serial_to_parallel_coe)
                 update_weight_buffer_counter_n = 0;
             end else begin
                 update_weight_buffer_counter_n = update_weight_buffer_counter + 1;
@@ -451,7 +451,7 @@ always_comb begin
         end
     end else if(state_c == CAL) begin
         if(cal_col_counter == pic_size - 1 && !pe_result_valid) begin
-            if(cal_row_counter == pic_size - 1 && cal_channel_counter ==2) begin
+            if(cal_row_counter == pic_size - 1 && cal_channel_counter == channel_size - 1) begin
                 init_pic_buffer_flag_n = 1'b0;
                 need_pic_reg_n = 1'b0;
                 update_previous_result_buffer_flag_n = 1'b0;
@@ -507,7 +507,7 @@ always_comb begin
         end
 
         if(cal_col_counter == pic_size - 1 && !pe_result_valid) begin
-            if(cal_channel_counter ==0 ||((cal_row_counter == pic_size - 1 && cal_channel_counter == 2))) begin
+            if(cal_channel_counter ==0 ||((cal_row_counter == pic_size - 1 && cal_channel_counter == channel_size - 1))) begin
                 read_previous_result_enable_reg_n = 1'b0;
             end else begin
                 read_previous_result_enable_reg_n = 1'b1;
