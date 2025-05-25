@@ -236,9 +236,9 @@ always_ff @(posedge clk or negedge rst_n) begin
         cal_row_counter <= 0;
         cal_col_counter <= 0;
         cal_channel_counter <= 0;
-        // parallel_conv_result_addr_counter <= 0;
+        conv_result_addr_counter <= 0;
         // serial_to_parallel_conv_result_counter <= 0;
-        // parallel_conv_result_counter <=0;
+        conv_result_counter <=0;
     end else begin
         update_first_row_counter <= update_first_row_counter_n;
         update_col_counter <= update_col_counter_n;
@@ -248,9 +248,9 @@ always_ff @(posedge clk or negedge rst_n) begin
         cal_row_counter <= cal_row_counter_n;
         cal_col_counter <= cal_col_counter_n;
         cal_channel_counter <= cal_channel_counter_n;
-        // parallel_conv_result_addr_counter <= parallel_conv_result_addr_counter_n;
+        conv_result_addr_counter <= conv_result_addr_counter_n;
         // serial_to_parallel_conv_result_counter <= serial_to_parallel_conv_result_counter_n;   
-        // parallel_conv_result_counter <= parallel_conv_result_counter_n;     
+        conv_result_counter <= conv_result_counter_n;     
     end
 end
 
@@ -265,9 +265,9 @@ always_comb begin
     cal_col_counter_n = cal_col_counter;
     cal_channel_counter_n = cal_channel_counter;
 
-    // parallel_conv_result_addr_counter_n = parallel_conv_result_addr_counter;
+    conv_result_addr_counter_n = conv_result_addr_counter;
     // serial_to_parallel_conv_result_counter_n = serial_to_parallel_conv_result_counter;
-    // parallel_conv_result_counter_n = parallel_conv_result_counter;
+    conv_result_counter_n = conv_result_counter;
 
     if(state_c == RD) begin
         //control the picture update counter
@@ -444,7 +444,9 @@ always_comb begin
                 update_weight_buffer_flag_n = 1'b0;
             end else begin
                 init_pic_buffer_flag_n = 1'b1;
-                need_pic_reg_n = 1'b1;
+                if(cal_row_counter < 25) begin
+                    need_pic_reg_n = 1'b1;
+                end
                 if(cal_channel_counter == 0) begin
                     update_previous_result_buffer_flag_n = 1'b0;
                 end else begin

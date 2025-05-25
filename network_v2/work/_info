@@ -25,9 +25,9 @@ Z5 8twenty_five_adder_tree_integer.sv
 Z6 Ftwenty_five_adder_tree_integer.sv
 L0 464
 Z7 OL;L;10.4;61
-Z8 !s108 1748164364.194000
-Z9 !s107 conv_control_integer_tb.sv|conv_control_integer.sv|PE_integer.sv|twenty_five_adder_tree_integer.sv|
-Z10 !s90 -reportprogress|300|twenty_five_adder_tree_integer.sv|PE_integer.sv|conv_control_integer.sv|conv_control_integer_tb.sv|
+Z8 !s108 1748167637.009000
+Z9 !s107 serial_conv_control_integer_tb.sv|serial_conv_control_integer.sv|PE_integer.sv|twenty_five_adder_tree_integer.sv|
+Z10 !s90 -reportprogress|300|twenty_five_adder_tree_integer.sv|PE_integer.sv|serial_conv_control_integer.sv|serial_conv_control_integer_tb.sv|
 !i113 0
 Z11 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
 vconv_control_integer
@@ -47,9 +47,9 @@ w1748043812
 Fconv_control_integer.sv
 L0 1
 R7
-R8
-R9
-R10
+Z12 !s108 1748164364.194000
+Z13 !s107 conv_control_integer_tb.sv|conv_control_integer.sv|PE_integer.sv|twenty_five_adder_tree_integer.sv|
+Z14 !s90 -reportprogress|300|twenty_five_adder_tree_integer.sv|PE_integer.sv|conv_control_integer.sv|conv_control_integer_tb.sv|
 !i113 0
 R11
 vconv_control_integer_tb
@@ -69,9 +69,9 @@ w1748042406
 Fconv_control_integer_tb.sv
 L0 3
 R7
-R8
-R9
-R10
+R12
+R13
+R14
 !i113 0
 R11
 vdelay_module
@@ -91,7 +91,7 @@ w1745683542
 Fdelay_module.sv
 L0 1
 R7
-!s108 1748164364.102000
+!s108 1748167636.920000
 !s107 delay_module.sv|
 !s90 -reportprogress|300|delay_module.sv|
 !i113 0
@@ -163,6 +163,50 @@ R10
 !i113 0
 R11
 n@p@e_integer
+vserial_conv_control_integer
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 P07_L]ACc^kGCKi;iVo0f3
+I4[Q@CUbIiROHCeTNB2Obe1
+!s105 serial_conv_control_integer_sv_unit
+S1
+R0
+w1748167629
+8serial_conv_control_integer.sv
+Fserial_conv_control_integer.sv
+L0 1
+R7
+R8
+R9
+R10
+!i113 0
+R11
+vserial_conv_control_integer_tb
+R1
+R2
+r1
+!s85 0
+31
+!i10b 1
+!s100 :cz6:mMF1`c^RzN0HDIhl1
+If6mAdfFGh=6^n_EOI]?:=2
+!s105 serial_conv_control_integer_tb_sv_unit
+S1
+R0
+w1748166430
+8serial_conv_control_integer_tb.sv
+Fserial_conv_control_integer_tb.sv
+L0 3
+R7
+R8
+R9
+R10
+!i113 0
+R11
 vsixteen_adder
 R1
 R2

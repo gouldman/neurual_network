@@ -42,7 +42,7 @@ logic read_previous_result_enable;
   // ----------------------------
   // DUT instantiation
   // ----------------------------
-conv_control_integer dut (
+serial_conv_control_integer dut (
     .clk(clk),
     .rst_n(rst_n),
     .conv_start(conv_start),
